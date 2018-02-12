@@ -3,15 +3,29 @@
   <PropertyGroup>
     <ReferencePath>$(HOME)/.local/lib/everest</ReferencePath>
   </PropertyGroup>
-  <Target Name="BeforeBuild">
-    <ItemGroup>
-      <ReferenceNew Include="@(Reference)">
-        <Private>False</Private>
-      </ReferenceNew>
-      <Reference Remove="@(Reference)"/>
-      <Reference Include="@(ReferenceNew)"/>
-    </ItemGroup>
-  </Target>
+  <ItemGroup>
+    <Reference Include="Celeste">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Celeste.Mod.mm">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="FNA">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Cecil">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Cecil.Mdb">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Cecil.Pdb">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="YamlDotNet">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
   <Target Name="Package">
     <MakeDir Directories="$(OutputPath)\package" />
     <ItemGroup>
