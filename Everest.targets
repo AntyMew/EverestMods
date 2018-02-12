@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ReferencePath>$(HOME)/.local/lib/everest</ReferencePath>
+  </PropertyGroup>
+  <Target Name="BeforeBuild">
+    <ItemGroup>
+      <ReferenceNew Include="@(Reference)">
+        <Private>False</Private>
+      </ReferenceNew>
+      <Reference Remove="@(Reference)"/>
+      <Reference Include="@(ReferenceNew)"/>
+    </ItemGroup>
+  </Target>
+  <Target Name="Package">
+    <MakeDir Directories="$(OutputPath)\package" />
+    <ItemGroup>
+      <PackageItems Include="$(TargetPath);$(ProjectDir)metadata.yaml" />
+      <PackageItems Condition="Exists('$(ProjectDir)Content')" Include="$(ProjectDir)Content\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PackageItems)" DestinationFolder="$(OutputPath)package/%(RecursiveDir)" />
+    <Delete Files="$(OutputPath)$(ProjectName).zip" />
+    <ZipDir InputPath="$(OutputPath)package" OutputFile="$(OutputPath)$(ProjectName).zip" />
+    <RemoveDir Directories="$(OutputPath)package" />
+  </Target>
+  <UsingTask TaskName="ZipDir" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
+    <ParameterGroup>
+      <InputPath ParameterType="System.String" Required="true" />
+      <OutputFile ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System.IO.Compression.FileSystem" />
+      <Using Namespace="System.IO.Compression" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[ try {
+          Log.LogMessage($"Compressing directory \"{InputPath}\" to \"{OutputFile}\".");
+          ZipFile.CreateFromDirectory(InputPath, OutputFile);
+          return true;
+        } catch (Exception e) {
+          Log.LogErrorFromException(e);
+          return false;
+        }]]>
+      </Code>
+    </Task>
+  </UsingTask>
+</Project>
