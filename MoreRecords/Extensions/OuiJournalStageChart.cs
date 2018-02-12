@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Monocle;
 
-namespace Celeste
+namespace Celeste.Mod.MoreRecords
 {
 	public class OuiJournalStageChart : OuiJournalPage
 	{
@@ -12,7 +12,18 @@ namespace Celeste
 		protected float scale;
 		protected Color color;
 
-		protected virtual Cell[] GenerateHeader() => null;
+		protected virtual Cell[] GenerateHeader()
+		{
+			var headers = new List<Cell>();
+			headers.Add(new TextCell(Dialog.Clean("journal_mode_normal"), justify, scale + 0.1f, color, 240f));
+			headers.Add(new TextCell(Dialog.Clean("journal_mode_normal_fullclear"), justify, scale + 0.1f, color, 240f));
+			if (SaveData.Instance.UnlockedModes >= 2)
+				headers.Add(new TextCell(Dialog.Clean("journal_mode_bside"), justify, scale + 0.1f, color, 240f));
+			if (SaveData.Instance.UnlockedModes >= 3)
+				headers.Add(new TextCell(Dialog.Clean("journal_mode_cside"), justify, scale + 0.1f, color, 240f));
+			return headers.ToArray();
+		} 
+
 		protected virtual Cell[] GenerateStats(AreaData area) => null;
 		protected virtual Cell[] GenerateTotals(List<AreaData> areas) => null;
 		protected virtual Cell GenerateGrandTotal(List<AreaData> areas) => null;

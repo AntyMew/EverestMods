@@ -30,9 +30,13 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MoreRecords.cs" />
-    <Compile Include="MoreRecordsSettings.cs" />
-    <Compile Include="OuiJournalStageChart.cs" />
+    <Compile Include="Module\MoreRecords.cs" />
+    <Compile Include="Module\MoreRecordsSettings.cs" />
+    <Compile Include="Module\MoreRecordsSaveData.cs" />
+    <Compile Include="Extensions\OuiJournalStageChart.cs" />
+    <Compile Include="Extensions\OuiJournalDeathless.cs" />
+    <Compile Include="Extensions\MoreAreaStats.cs" />
+    <Compile Include="Extensions\MoreAreaModeStats.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(SolutionDir)\Everest.targets" />

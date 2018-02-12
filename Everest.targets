@@ -10,6 +10,9 @@
     <Reference Include="Celeste.Mod.mm">
       <Private>False</Private>
     </Reference>
+    <Reference Include="MonoMod">
+      <Private>False</Private>
+    </Reference>
     <Reference Include="FNA">
       <Private>False</Private>
     </Reference>
