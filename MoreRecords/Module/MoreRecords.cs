@@ -16,10 +16,12 @@ namespace Celeste.Mod.MoreRecords
         public override Type SaveDataType => typeof(MoreRecordsSaveData);
         public static MoreRecordsSaveData SaveData => (MoreRecordsSaveData) Instance._SaveData;
 
-        public long RoomStartTime;
+        public Vector2? LastRespawnPoint;
+        public long LastCheckpointTime;
         public long DeathlessTime;
 
         private readonly static MethodInfo m_RegisterCompletion = typeof(SaveData).GetMethod("RegisterCompletion", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        private readonly static MethodInfo m_Update = typeof(Level).GetMethod("Update", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
         public MoreRecords()
         {
@@ -35,6 +37,7 @@ namespace Celeste.Mod.MoreRecords
 
             Type t_MoreRecords = GetType();
             orig_RegisterCompletion = m_RegisterCompletion.Detour<d_RegisterCompletion>(t_MoreRecords.GetMethod("RegisterCompletion"));
+            orig_Update = m_Update.Detour<d_Update>(t_MoreRecords.GetMethod("Update"));
         }
 
         public override void Unload()
@@ -44,7 +47,6 @@ namespace Celeste.Mod.MoreRecords
 
         private void JournalOnEnter(OuiJournal journal, Oui from)
         {
-            Console.WriteLine(SaveData.ToString());
             journal.Pages.Add(new OuiJournalDeathless(journal));
         }
 
@@ -56,7 +58,7 @@ namespace Celeste.Mod.MoreRecords
             }
             else
             {
-                RoomStartTime = 0L;
+                LastCheckpointTime = 0L;
                 DeathlessTime = 0L;
             }
         }
@@ -64,13 +66,14 @@ namespace Celeste.Mod.MoreRecords
         private void PlayerOnDie(Player player)
         {
             Level level = Engine.Scene as Level;
-            RoomStartTime = level.Session.Time;
+            LastCheckpointTime = level.Session.Time;
         }
 
         private void LevelOnTransitionTo(LevelData next, Vector2 direction)
         {
             Level level = Engine.Scene as Level;
-            DeathlessTime += level.Session.Time - RoomStartTime;
+            DeathlessTime += level.Session.Time - LastCheckpointTime;
+            LastCheckpointTime = level.Session.Time;
         }
 
         public delegate void d_RegisterCompletion(SaveData self, Session session);
@@ -79,11 +82,12 @@ namespace Celeste.Mod.MoreRecords
         {
             orig_RegisterCompletion(self, session);
 
-            MoreRecords.Instance.DeathlessTime += session.Time - MoreRecords.Instance.RoomStartTime;
-            long deathlessTime = MoreRecords.Instance.DeathlessTime;
-
+            var module = MoreRecords.Instance;
+            module.DeathlessTime += session.Time - module.LastCheckpointTime;
+            long deathlessTime = module.DeathlessTime;
             var area = session.Area;
             var oldStats = MoreRecords.SaveData.Areas[area.ID].Modes[(int) area.Mode].Clone();
+
             if (session.StartedFromBeginning)
 			{
 				if (oldStats.TheoryTime <= 0L || deathlessTime < oldStats.TheoryTime)
@@ -95,6 +99,26 @@ namespace Celeste.Mod.MoreRecords
 				}
 			}
             MoreRecords.SaveData.Areas[area.ID].Modes[(int) area.Mode] = oldStats.Clone();
+        }
+
+        public delegate void d_Update(Level self);
+        public static d_Update orig_Update;
+        public static void Update(Level self)
+        {
+            orig_Update(self);
+
+            var module = MoreRecords.Instance;
+            var currRespawnPoint = self.Session.RespawnPoint;
+
+            if (module.LastRespawnPoint != currRespawnPoint)
+            {
+                module.LastRespawnPoint = currRespawnPoint;
+                if (currRespawnPoint != null)
+                {
+                    module.DeathlessTime += self.Session.Time - module.LastCheckpointTime;
+                    module.LastCheckpointTime = self.Session.Time;
+                }
+            }
         }
     }
 }
